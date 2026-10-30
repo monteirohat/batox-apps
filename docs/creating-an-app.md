@@ -70,7 +70,8 @@ disappear on their own.
 A Painter receives the screen width and returns an image as wide as the screen; its height becomes
 the overlay height. Keep everything outside your content transparent.
 
-- Reuse `ui.Card` when a card fits.
+- Reuse `ui.Card` for messages and `ui.Countdown` for timers. To put a component in a corner,
+  combine `overlay.Top` or `overlay.Bottom` with `ui.AlignLeft` or `ui.AlignRight`.
 - For something new, build it from `ui.Face`, `ui.Wrap`, `ui.DrawText`, `ui.FillRoundedRect` and
   `ui.Gradient`, and derive every size from the screen width, as `Card` does, so it looks the same
   at 1080p and 4K.

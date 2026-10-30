@@ -43,6 +43,6 @@ func TestBlitConvertsAndCenters(t *testing.T) {
 
 func TestBlitClipsWideImages(t *testing.T) {
 	img := image.NewRGBA(image.Rect(0, 0, 10, 3))
-	dst := make([]byte, 4*2*2) // 2x2 buffer
+	dst := make([]byte, 4*2*2)   // 2x2 buffer
 	blitARGB8888(img, dst, 2, 2) // must not panic
 }

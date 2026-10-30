@@ -29,6 +29,12 @@ var BatoX = Theme{
 	},
 }
 
+// Status colors, for warnings and urgent states.
+var (
+	Warning = color.RGBA{0xFF, 0xB4, 0x3E, 0xFF} // amber
+	Danger  = color.RGBA{0xFC, 0x6C, 0x69, 0xFF} // red
+)
+
 // Gradient returns the color at t (0 to 1) along stops, evenly spaced.
 func Gradient(stops []color.RGBA, t float64) color.RGBA {
 	if len(stops) == 0 {

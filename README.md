@@ -33,6 +33,7 @@ Part of the [BatoX](https://github.com/monteirohat/BatoX) project.
 | App | What it does |
 |---|---|
 | `batox-message` | Shows a message card on top of the game for a few seconds. |
+| `batox-timer` | Shows a countdown in a corner of the screen; at zero, closes the game or powers the console off. |
 
 ### batox-message
 
@@ -51,6 +52,36 @@ batox-message -title "" "Line one\nLine two"
 | `-verbose` | | prints the compositor socket used, to diagnose a message that doesn't appear |
 
 Long messages wrap automatically, up to four lines.
+
+### batox-timer
+
+```bash
+batox-timer -duration 30m                                   # close the game in 30 minutes
+batox-timer -duration 1h -corner bottom-left -action shutdown
+batox-timer -duration 2m -dry-run                           # try it: nothing is closed
+```
+
+| Option | Default | |
+|---|---|---|
+| `-duration` | `30m` | countdown length: `45m`, `1h`, `1h30m`... (up to 24 h) |
+| `-corner` | `top-right` | `top-left`, `top-right`, `bottom-left` or `bottom-right` |
+| `-action` | `close-game` | at zero: `close-game`, `shutdown` or `none` |
+| `-title` | `Time left` | small line above the time (`""` for none) |
+| `-done-title` | `Time's up` | the title once the time is over |
+| `-scale` | `1` | size multiplier |
+| `-dry-run` | | at zero, only print what would happen |
+
+The timer turns amber in the last minute and red in the last 10 seconds. At zero it shows
+"Time's up" for a few seconds, then:
+
+- **close-game** closes the running game through EmulationStation (unsaved progress is lost); if
+  no game is running, nothing happens;
+- **shutdown** powers the console off;
+- **none** only shows the timer.
+
+Stopping the timer early (Ctrl+C, or `pkill batox-timer`) removes it from the screen and does
+nothing else. To keep it running after closing the SSH session, start it with
+`nohup batox-timer -duration 30m >/dev/null 2>&1 &`.
 
 ## Installing on the console
 

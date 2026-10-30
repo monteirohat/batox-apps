@@ -26,6 +26,8 @@ type Card struct {
 	MaxWidth float64
 	// MaxLines limits the text lines; the last one ends with "…" (default 4).
 	MaxLines int
+	// Align places the card on the screen (default centered).
+	Align Align
 }
 
 func (c Card) withDefaults() Card {
@@ -85,7 +87,7 @@ func (c Card) Render(screenWidth int) (*image.RGBA, error) {
 	cardH := 2*pad + titleHeight + len(lines)*lineHeight
 
 	img := image.NewRGBA(image.Rect(0, 0, screenWidth, cardH+2*margin))
-	x0 := (screenWidth - cardW) / 2
+	x0 := c.Align.x(screenWidth, cardW, margin)
 	y0 := margin
 	FillRoundedRect(img, image.Rect(x0, y0, x0+cardW, y0+cardH), radius, func(x, y int) color.RGBA {
 		if x < accent {
