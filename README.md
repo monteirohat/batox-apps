@@ -104,7 +104,7 @@ EmulationStation's environment; no environment variables are needed.
 
 ## Building
 
-Requires Go 1.24+ and `make`.
+Requires Go 1.26+ and `make`.
 
 ```bash
 make build                         # every app, for arm64 and amd64, into build/

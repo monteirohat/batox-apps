@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-22
+
 ### Changed
 
 - A new look for the message card and the countdown, the one of the BatoX web app and of
@@ -19,6 +21,8 @@ All notable changes to this project are documented here. The format follows
   `ui.FillFramedRect`, `ui.Label`, `ui.CapHeight`, `ui.MeasureSpaced`, `ui.DrawTextSpaced`,
   `ui.MeasureDigits` and `ui.DrawDigits` (a number whose digits change without shifting).
 
+## [0.2.0] - 2026-10-30
+
 ### Added
 
 - `batox-timer` app: a countdown in a corner of the screen, on top of the game, that closes the game
@@ -28,6 +32,8 @@ All notable changes to this project are documented here. The format follows
   `overlay.Top` or `overlay.Bottom`), and the `ui.Warning` and `ui.Danger` colors.
 - `ui.Card` can be aligned to a side with `Align`.
 
+## [0.1.0] - 2026-10-29
+
 ### Added
 
 - `overlay` package: shows images above everything on Batocera, fullscreen games included, through
@@ -35,3 +41,8 @@ All notable changes to this project are documented here. The format follows
   that is repainted on a timer.
 - `ui` package: BatoX theme, embedded fonts, text wrapping, rounded shapes and the `Card` component.
 - `batox-message` app: shows a message card on top of the game for a few seconds.
+
+[Unreleased]: https://github.com/monteirohat/batox-apps/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/monteirohat/batox-apps/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/monteirohat/batox-apps/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/monteirohat/batox-apps/releases/tag/v0.1.0
