@@ -1,5 +1,9 @@
 // Package ui draws the visual pieces of BatoX overlays: a theme, fonts with
-// text wrapping, rounded shapes and ready-made components such as Card.
+// text wrapping, shapes and ready-made components such as Card.
+//
+// The look is the one of the BatoX web app and of batox-theme: a flat dark
+// indigo surface in a thin white frame, square corners, white type, labels in
+// small capitals over their values.
 //
 // Everything draws into *image.RGBA, which is premultiplied, as the overlay
 // package expects. Sizes are derived from the screen width, so a component
@@ -10,28 +14,26 @@ import "image/color"
 
 // Theme holds the colors of a component.
 type Theme struct {
-	Surface color.RGBA   // card background; its alpha sets the transparency
-	Text    color.RGBA   // main text
-	Title   color.RGBA   // small title above the text
-	Accent  []color.RGBA // gradient of the accent bar, top to bottom
+	Surface color.RGBA // card background; its alpha sets the transparency
+	Frame   color.RGBA // the thin frame around the card
+	Text    color.RGBA // main text and figures
+	Title   color.RGBA // the label above the text, in small capitals
+	Track   color.RGBA // the part of a progress line still to go
 }
 
-// BatoX is the default theme, with the colors of the BatoX logo.
+// BatoX is the default theme: the surface, frame and type of the BatoX web
+// app. The surface is almost opaque, so a card reads over any game.
 var BatoX = Theme{
-	Surface: color.RGBA{0x12, 0x1A, 0x2C, 0xF0},
-	Text:    color.RGBA{0xE9, 0xEE, 0xF8, 0xFF},
-	Title:   color.RGBA{0x6A, 0xA8, 0xFF, 0xFF},
-	Accent: []color.RGBA{
-		{0x12, 0xC6, 0xF5, 0xFF},
-		{0x17, 0x67, 0xEE, 0xFF},
-		{0x45, 0x30, 0xEC, 0xFF},
-		{0xA1, 0x00, 0xEE, 0xFF},
-	},
+	Surface: color.RGBA{0x15, 0x12, 0x2B, 0xF0},
+	Frame:   color.RGBA{0xF2, 0xF4, 0xF8, 0xFF},
+	Text:    color.RGBA{0xFF, 0xFF, 0xFF, 0xFF},
+	Title:   color.RGBA{0xA9, 0xB7, 0xCC, 0xFF},
+	Track:   color.RGBA{0xFF, 0xFF, 0xFF, 0x30},
 }
 
 // Status colors, for warnings and urgent states.
 var (
-	Warning = color.RGBA{0xFF, 0xB4, 0x3E, 0xFF} // amber
+	Warning = color.RGBA{0xFF, 0xBF, 0x4C, 0xFF} // amber
 	Danger  = color.RGBA{0xFC, 0x6C, 0x69, 0xFF} // red
 )
 

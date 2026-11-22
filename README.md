@@ -23,6 +23,10 @@ Batocera runs **sway**, a Wayland compositor, and BatoX Apps use its **overlay l
 things above everything on the screen, fullscreen games included. The overlays never take the
 controller: the game keeps playing while a message is on screen.
 
+The cards have the look of the BatoX web app and of
+[batox-theme](https://github.com/monteirohat/batox-theme): a dark indigo surface with square
+corners in a thin white frame, white type, a label in small capitals over its value.
+
 Each app is a single static binary: no CGO, no libraries to install on the console, fonts
 embedded. They run on Raspberry Pi (arm64) and x86_64 PCs with Batocera 43 or newer.
 
@@ -71,7 +75,7 @@ batox-timer -duration 2m -dry-run                           # try it: nothing is
 | `-scale` | `1` | size multiplier |
 | `-dry-run` | | at zero, only print what would happen |
 
-The timer turns amber in the last minute and red in the last 10 seconds. At zero it shows
+The timer (digits, line and frame) turns amber in the last minute and red in the last 10 seconds. At zero it shows
 "Time's up" for a few seconds, then:
 
 - **close-game** closes the running game through EmulationStation (unsaved progress is lost); if

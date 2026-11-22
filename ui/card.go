@@ -3,13 +3,12 @@ package ui
 import (
 	"errors"
 	"image"
-	"image/color"
 	"math"
 )
 
-// Card is a message card: a dark rounded panel with a gradient accent bar on
-// the left, an optional small title and the text, wrapped to fit. Render it
-// with an overlay:
+// Card is a message card: a dark panel with square corners in a thin white
+// frame, an optional label in small capitals and the text under it, wrapped to
+// fit. Render it with an overlay:
 //
 //	card := ui.Card{Title: "BatoX", Text: "Dinner is ready!"}
 //	overlay.Show(ctx, opts, card.Render)
@@ -31,7 +30,7 @@ type Card struct {
 }
 
 func (c Card) withDefaults() Card {
-	if c.Theme.Accent == nil && c.Theme.Surface == (color.RGBA{}) {
+	if c.Theme == (Theme{}) {
 		c.Theme = BatoX
 	}
 	if c.Scale <= 0 {
@@ -46,6 +45,12 @@ func (c Card) withDefaults() Card {
 	return c
 }
 
+// frameWidth is the width of a card's frame for a text size: about 4 px on a
+// 1920 px wide screen, as the selection's frame on the console's home.
+func frameWidth(size float64) int {
+	return int(math.Max(2, math.Round(size*0.085)))
+}
+
 // Render draws the card centered in a transparent image as wide as the screen,
 // with a margin above and below. It is an overlay.Painter.
 func (c Card) Render(screenWidth int) (*image.RGBA, error) {
@@ -55,55 +60,62 @@ func (c Card) Render(screenWidth int) (*image.RGBA, error) {
 	c = c.withDefaults()
 
 	size := math.Max(22, float64(screenWidth)/42) * c.Scale
-	textFace, err := Face(Bold, size)
+	textFace, err := Face(Regular, size)
 	if err != nil {
 		return nil, err
 	}
 	defer textFace.Close()
-	titleFace, err := Face(Regular, size*0.55)
+	labelFace, err := Face(Regular, size*0.42)
 	if err != nil {
 		return nil, err
 	}
-	defer titleFace.Close()
+	defer labelFace.Close()
 
-	pad := int(size * 0.8)
-	accent := int(math.Max(6, size*0.22))
-	radius := int(size * 0.5)
+	label := Label(c.Title)
+	spacing := int(math.Round(size * 0.42 * 0.07))
+	frame := frameWidth(size)
+	padX := int(size * 0.85)
+	// The space above the label's capitals and under the last line's baseline.
+	padY := int(size * 0.72)
 	margin := int(size * 0.9)
 	lineHeight := int(size * 1.3)
-	titleHeight := 0
-	if c.Title != "" {
-		titleHeight = int(size * 0.55 * 1.6)
+	m := textFace.Metrics()
+	// A line's capitals start this far under its top, and its baseline is as
+	// far above its bottom.
+	inLine := (lineHeight-(m.Ascent.Ceil()+m.Descent.Ceil()))/2 + m.Ascent.Ceil() - m.CapHeight.Ceil()
+	labelHeight := 0
+	if label != "" {
+		labelHeight = CapHeight(labelFace) + int(size*0.45) - inLine
 	}
 
 	maxCard := int(float64(screenWidth) * c.MaxWidth)
-	lines := Wrap(textFace, c.Text, maxCard-2*pad-accent, c.MaxLines)
+	lines := Wrap(textFace, c.Text, maxCard-2*padX-2*frame, c.MaxLines)
 
-	widest := Measure(titleFace, c.Title)
+	widest := MeasureSpaced(labelFace, label, spacing)
 	for _, line := range lines {
 		widest = max(widest, Measure(textFace, line))
 	}
-	cardW := min(max(widest+2*pad+accent, int(size*8)), screenWidth)
-	cardH := 2*pad + titleHeight + len(lines)*lineHeight
+	cardW := min(max(widest+2*padX+2*frame, int(size*8)), screenWidth)
+	top := padY
+	if label == "" {
+		top = padY - inLine
+	}
+	cardH := 2*frame + top + labelHeight + len(lines)*lineHeight + padY - inLine
 
 	img := image.NewRGBA(image.Rect(0, 0, screenWidth, cardH+2*margin))
 	x0 := c.Align.x(screenWidth, cardW, margin)
 	y0 := margin
-	FillRoundedRect(img, image.Rect(x0, y0, x0+cardW, y0+cardH), radius, func(x, y int) color.RGBA {
-		if x < accent {
-			return Gradient(c.Theme.Accent, float64(y)/float64(cardH))
-		}
-		return c.Theme.Surface
-	})
+	FillFramedRect(img, image.Rect(x0, y0, x0+cardW, y0+cardH), frame, c.Theme.Frame, c.Theme.Surface)
 
-	textX := x0 + accent + pad
-	y := y0 + pad
-	if c.Title != "" {
-		DrawText(img, titleFace, c.Theme.Title, textX, y, c.Title)
-		y += titleHeight
+	textX := x0 + frame + padX
+	y := y0 + frame + top
+	if label != "" {
+		DrawTextSpaced(img, labelFace, c.Theme.Title, textX, capTop(labelFace, y), spacing, label)
+		y += labelHeight
 	}
+	lineTop := (lineHeight - (m.Ascent.Ceil() + m.Descent.Ceil())) / 2
 	for _, line := range lines {
-		DrawText(img, textFace, c.Theme.Text, textX, y, line)
+		DrawText(img, textFace, c.Theme.Text, textX, y+lineTop, line)
 		y += lineHeight
 	}
 	return img, nil

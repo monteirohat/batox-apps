@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"golang.org/x/image/font/sfnt"
 )
 
 func TestGradient(t *testing.T) {
@@ -156,5 +158,79 @@ func TestCountdownColors(t *testing.T) {
 		if got := c.stateColor(); got != want {
 			t.Errorf("at %v: color %v, want %v", left, got, want)
 		}
+	}
+}
+
+func TestCardHasSquareCornersAndAFrame(t *testing.T) {
+	img, err := Card{Title: "BatoX", Text: "Dinner is ready!"}.Render(1920)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Find the card: the first and last opaque pixels of the middle row.
+	b, mid := img.Bounds(), img.Bounds().Dy()/2
+	left, right := -1, -1
+	for x := 0; x < b.Dx(); x++ {
+		if img.RGBAAt(x, mid).A > 0 {
+			if left < 0 {
+				left = x
+			}
+			right = x
+		}
+	}
+	top := -1
+	for y := 0; y < b.Dy() && top < 0; y++ {
+		if img.RGBAAt((left+right)/2, y).A > 0 {
+			top = y
+		}
+	}
+	if left < 0 || top < 0 {
+		t.Fatal("no card found")
+	}
+	for _, p := range []image.Point{{left, top}, {right, top}, {left, mid}, {(left + right) / 2, top}} {
+		if got := img.RGBAAt(p.X, p.Y); got != BatoX.Frame {
+			t.Errorf("at %v: %v, want the frame %v (square corners, a frame all around)", p, got, BatoX.Frame)
+		}
+	}
+	if got := img.RGBAAt(left+12, mid); got == BatoX.Frame || got.A == 0 {
+		t.Errorf("inside the frame: %v, want the surface", got)
+	}
+}
+
+func TestDigitsDoNotShift(t *testing.T) {
+	face, err := Face(Light, 60)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer face.Close()
+	if a, b := MeasureDigits(face, "11:11"), MeasureDigits(face, "00:00"); a != b {
+		t.Errorf("11:11 is %d px wide and 00:00 is %d: a countdown would shake", a, b)
+	}
+	if a, b := MeasureDigits(face, "1:00:00"), MeasureDigits(face, "00:00"); a <= b {
+		t.Errorf("more digits should be wider: %d, %d", a, b)
+	}
+}
+
+func TestLabelsAndWeights(t *testing.T) {
+	if got := Label("Time left"); got != "TIME LEFT" {
+		t.Errorf("Label = %q", got)
+	}
+	for _, w := range []Weight{Light, Regular, SemiBold, Bold} {
+		face, err := Face(w, 20)
+		if err != nil {
+			t.Fatalf("weight %d: %v", w, err)
+		}
+		// The fonts cover what the earlier ones did: Latin with accents, Greek, Cyrillic.
+		var buf sfnt.Buffer
+		for _, r := range "Aãçé€ΩЖ…" {
+			if i, err := fonts[w].GlyphIndex(&buf, r); err != nil || i == 0 {
+				t.Errorf("weight %d has no glyph for %q", w, r)
+			}
+		}
+		face.Close()
+	}
+	face, _ := Face(Regular, 20)
+	defer face.Close()
+	if plain, spaced := Measure(face, "ABC"), MeasureSpaced(face, "ABC", 3); spaced != plain+6 && spaced != plain+5 && spaced != plain+7 {
+		t.Errorf("spaced width %d, plain %d: want 2 gaps of 3 px more", spaced, plain)
 	}
 }

@@ -5,7 +5,7 @@ included. They share two libraries, so an app is usually a single short `main.go
 
 ```
 cmd/<app>/     the apps: parse flags, build what to show, call overlay
-ui/            what to draw: theme, fonts, text wrapping, shapes, components (Card)
+ui/            what to draw: theme, fonts, text wrapping, shapes, components (Card, Countdown)
 overlay/       how to show it: the connection to sway and the on-screen surface
 ```
 
@@ -48,7 +48,8 @@ Pixels go through shared memory: each frame is a `memfd` mapped into the app, pa
 `SCM_RIGHTS`, in the `ARGB8888` format (premultiplied, B, G, R, A in memory). A buffer is freed only
 after sway sends `wl_buffer.release`, so repainting never touches memory sway is still reading.
 
-Fonts are embedded (Go Regular and Go Bold, from `golang.org/x/image`), so the apps don't depend on
+Fonts are embedded (Inter Light, Regular and SemiBold, cut down to the Latin, Greek and Cyrillic
+letters, in `ui/fonts/`), so the apps don't depend on
 the fonts installed on the console. The result is a static binary that runs on any Batocera with
 sway, on arm64 and amd64.
 

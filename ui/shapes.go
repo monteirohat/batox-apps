@@ -28,6 +28,36 @@ func FillRoundedRect(img *image.RGBA, r image.Rectangle, radius int, colorAt fun
 	}
 }
 
+// FillRect fills r, with square corners, blending c over what is already in
+// img.
+func FillRect(img *image.RGBA, r image.Rectangle, c color.RGBA) {
+	r = r.Intersect(img.Bounds())
+	for y := r.Min.Y; y < r.Max.Y; y++ {
+		for x := r.Min.X; x < r.Max.X; x++ {
+			blend(img, x, y, c, 1)
+		}
+	}
+}
+
+// FillFramedRect draws a card with square corners: surface inside, and a
+// frame of the given width just inside the edges of r.
+func FillFramedRect(img *image.RGBA, r image.Rectangle, frame int, frameColor, surface color.RGBA) {
+	inner := r.Inset(frame)
+	for y := r.Min.Y; y < r.Max.Y; y++ {
+		for x := r.Min.X; x < r.Max.X; x++ {
+			p := image.Point{x, y}
+			if !p.In(img.Bounds()) {
+				continue
+			}
+			if p.In(inner) {
+				blend(img, x, y, surface, 1)
+			} else {
+				blend(img, x, y, frameColor, 1)
+			}
+		}
+	}
+}
+
 // roundedCover is how much of the pixel centered at (px, py) lies inside a
 // w x h rounded rectangle, from 0 to 1.
 func roundedCover(px, py, w, h, r float64) float64 {

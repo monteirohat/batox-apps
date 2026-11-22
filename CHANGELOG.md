@@ -6,6 +6,19 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- A new look for the message card and the countdown, the one of the BatoX web app and of
+  [batox-theme](https://github.com/monteirohat/batox-theme): a dark indigo surface with square
+  corners in a thin white frame, in place of the rounded card with a gradient bar; the title is
+  a label in small capitals; the countdown's digits are large and light over a thin progress
+  line, and near the end the digits, the line and the frame turn amber, then red.
+- The embedded fonts are Inter Light, Regular and SemiBold (Latin, Greek and Cyrillic) in place
+  of the Go fonts. `ui.Light` and `ui.SemiBold` are new; `ui.Bold` now means SemiBold.
+- `ui.Theme` has `Frame` and `Track` in place of `Accent`. New helpers: `ui.FillRect`,
+  `ui.FillFramedRect`, `ui.Label`, `ui.CapHeight`, `ui.MeasureSpaced`, `ui.DrawTextSpaced`,
+  `ui.MeasureDigits` and `ui.DrawDigits` (a number whose digits change without shifting).
+
 ### Added
 
 - `batox-timer` app: a countdown in a corner of the screen, on top of the game, that closes the game

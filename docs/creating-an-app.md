@@ -72,9 +72,14 @@ the overlay height. Keep everything outside your content transparent.
 
 - Reuse `ui.Card` for messages and `ui.Countdown` for timers. To put a component in a corner,
   combine `overlay.Top` or `overlay.Bottom` with `ui.AlignLeft` or `ui.AlignRight`.
-- For something new, build it from `ui.Face`, `ui.Wrap`, `ui.DrawText`, `ui.FillRoundedRect` and
-  `ui.Gradient`, and derive every size from the screen width, as `Card` does, so it looks the same
+- For something new, build it from `ui.Face`, `ui.Wrap`, `ui.DrawText`, `ui.FillFramedRect` and
+  `ui.FillRect`, and derive every size from the screen width, as `Card` does, so it looks the same
   at 1080p and 4K.
+- Keep the look of the other components, which is the one of the BatoX web app and of
+  [batox-theme](https://github.com/monteirohat/batox-theme): a dark indigo surface with square
+  corners in a thin white frame (`ui.BatoX`), a label in small capitals (`ui.Label`,
+  `ui.DrawTextSpaced`) over its value, large figures in Inter Light (`ui.DrawDigits` keeps a
+  changing number still), and color only for a state (`ui.Warning`, `ui.Danger`).
 - A component that more than one app could use belongs in `ui/`, with tests.
 
 ## 5. Try it on the console

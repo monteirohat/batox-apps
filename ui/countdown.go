@@ -10,9 +10,10 @@ import (
 	"time"
 )
 
-// Countdown is a compact timer card: a small title, the time left in large
-// digits and a progress bar. It turns amber near the end and red in the last
-// seconds. Render it in a corner with overlay.Run, repainting every second:
+// Countdown is a compact timer card: a label in small capitals, the time left
+// in large light digits and a thin progress line, in a dark panel with a white
+// frame. It turns amber near the end and red in the last seconds. Render it in
+// a corner with overlay.Run, repainting every second:
 //
 //	t := ui.Countdown{Title: "Time left", Total: total, Align: ui.AlignRight}
 //	overlay.Run(ctx, overlay.Options{Position: overlay.Top}, time.Second, func(w int) (*image.RGBA, error) {
@@ -20,8 +21,8 @@ import (
 //		return t.Render(w)
 //	})
 //
-// Its size depends only on Total and Title, so the card doesn't change size
-// every second.
+// Its size depends only on Total and Title, and every digit takes the same
+// width, so the card doesn't change size or shake every second.
 type Countdown struct {
 	Title     string        // small line above the digits, e.g. "Time left"
 	Remaining time.Duration // time left; 0 or less shows 0:00
@@ -61,8 +62,8 @@ func (c Countdown) widthTemplate() string {
 	}, FormatDuration(longest))
 }
 
-// stateColor is the color of the digits and accent: nil for the theme's own,
-// amber near the end, red in the last seconds.
+// stateColor is the color of the digits, the line and the frame: nil for the
+// theme's own, amber near the end, red in the last seconds.
 func (c Countdown) stateColor() *color.RGBA {
 	switch {
 	case c.Remaining <= c.UrgentAt:
@@ -74,7 +75,7 @@ func (c Countdown) stateColor() *color.RGBA {
 }
 
 func (c Countdown) withDefaults() Countdown {
-	if c.Theme.Accent == nil && c.Theme.Surface == (color.RGBA{}) {
+	if c.Theme == (Theme{}) {
 		c.Theme = BatoX
 	}
 	if c.Scale <= 0 {
@@ -98,79 +99,62 @@ func (c Countdown) Render(screenWidth int) (*image.RGBA, error) {
 	c = c.withDefaults()
 
 	size := math.Max(18, float64(screenWidth)/60) * c.Scale // ~32 px at 1920
-	digitsFace, err := Face(Bold, size*1.5)
+	digitsFace, err := Face(Light, size*1.9)
 	if err != nil {
 		return nil, err
 	}
 	defer digitsFace.Close()
-	titleFace, err := Face(Regular, size*0.55)
+	labelFace, err := Face(Regular, size*0.5)
 	if err != nil {
 		return nil, err
 	}
-	defer titleFace.Close()
+	defer labelFace.Close()
 
-	pad := int(size * 0.6)
-	accent := int(math.Max(5, size*0.18))
-	radius := int(size * 0.45)
+	label := Label(c.Title)
+	spacing := int(math.Round(size * 0.5 * 0.07))
+	frame := frameWidth(size * 1.2)
+	pad := int(size * 0.7)
 	margin := int(size * 0.9)
-	titleH := 0
-	if c.Title != "" {
-		titleH = int(size * 0.55 * 1.6)
+	labelH := 0
+	if label != "" {
+		labelH = CapHeight(labelFace) + int(size*0.42)
 	}
-	digitsH := int(size * 1.5 * 1.2)
+	digitsH := CapHeight(digitsFace)
 	barH, barGap := 0, 0
 	if c.Total > 0 {
-		barH, barGap = int(math.Max(4, size*0.16)), int(size*0.3)
+		barH, barGap = int(math.Max(2, math.Round(size*0.1))), int(size*0.5)
 	}
 
-	textW := max(Measure(digitsFace, c.widthTemplate())*105/100, Measure(titleFace, c.Title))
-	cardW := min(textW+2*pad+accent, screenWidth)
-	cardH := 2*pad + titleH + digitsH + barGap + barH
+	textW := max(MeasureDigits(digitsFace, c.widthTemplate()), MeasureSpaced(labelFace, label, spacing))
+	cardW := min(textW+2*pad+2*frame, screenWidth)
+	cardH := 2*frame + 2*pad + labelH + digitsH + barGap + barH
 
 	img := image.NewRGBA(image.Rect(0, 0, screenWidth, cardH+2*margin))
 	x0, y0 := c.Align.x(screenWidth, cardW, margin), margin
 
-	state := c.stateColor()
-	accentAt := func(t float64) color.RGBA {
-		if state != nil {
-			return *state
-		}
-		return Gradient(c.Theme.Accent, t)
+	// Near the end the figures, the line and the frame take the state's color.
+	ink, frameColor := c.Theme.Text, c.Theme.Frame
+	if state := c.stateColor(); state != nil {
+		ink, frameColor = *state, *state
 	}
-	FillRoundedRect(img, image.Rect(x0, y0, x0+cardW, y0+cardH), radius, func(x, y int) color.RGBA {
-		if x < accent {
-			return accentAt(float64(y) / float64(cardH))
-		}
-		return c.Theme.Surface
-	})
+	FillFramedRect(img, image.Rect(x0, y0, x0+cardW, y0+cardH), frame, frameColor, c.Theme.Surface)
 
-	textX := x0 + accent + pad
-	y := y0 + pad
-	if c.Title != "" {
-		titleColor := c.Theme.Title
-		if state != nil {
-			titleColor = *state
-		}
-		DrawText(img, titleFace, titleColor, textX, y, c.Title)
-		y += titleH
+	textX := x0 + frame + pad
+	y := y0 + frame + pad
+	if label != "" {
+		DrawTextSpaced(img, labelFace, c.Theme.Title, textX, capTop(labelFace, y), spacing, label)
+		y += labelH
 	}
-	digitsColor := c.Theme.Text
-	if state != nil {
-		digitsColor = *state
-	}
-	DrawText(img, digitsFace, digitsColor, textX, y, FormatDuration(c.Remaining))
+	DrawDigits(img, digitsFace, ink, textX, capTop(digitsFace, y), FormatDuration(c.Remaining))
 	y += digitsH
 
 	if c.Total > 0 {
 		y += barGap
-		barW := cardW - accent - 2*pad
-		track := image.Rect(textX, y, textX+barW, y+barH)
-		FillRoundedRect(img, track, barH/2, func(int, int) color.RGBA { return color.RGBA{0x26, 0x34, 0x4F, 0xFF} })
+		barW := cardW - 2*pad - 2*frame
+		FillRect(img, image.Rect(textX, y, textX+barW, y+barH), c.Theme.Track)
 		left := math.Max(0, math.Min(1, float64(c.Remaining)/float64(c.Total)))
 		if fill := int(float64(barW) * left); fill > 0 {
-			FillRoundedRect(img, image.Rect(textX, y, textX+fill, y+barH), barH/2, func(x, _ int) color.RGBA {
-				return accentAt(float64(x) / float64(barW))
-			})
+			FillRect(img, image.Rect(textX, y, textX+fill, y+barH), ink)
 		}
 	}
 	return img, nil
